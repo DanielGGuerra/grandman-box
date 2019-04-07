@@ -1,7 +1,11 @@
+#include <TimeAlarms.h>
+
+#include <Time.h>
+
 #include <SoftwareSerial.h>
 
-const int pinoRX = 2;
-const int pinoTX = 3;
+const int pinoRX = 0;
+const int pinoTX = 1;
 const int box1 = 13;
 const int box2 = 12;
 const int box3 = 11;
@@ -28,5 +32,36 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  if (bluetooth.available() > 0){
+    String textRec = leString();
+    if (leString().length() == 8){
+      //setTime
+    }
+  } 
 }
+
+//Funçoes
+String leString(){
+  String conteudo = "";
+  char caractere;
+  
+  // Enquanto receber algo pela serial
+  while(bluetooth.available() > 0) {
+    // Lê byte da serial
+    caractere = Serial.read();
+    // Ignora caractere de quebra de linha
+    if (caractere != '\n'){
+      // Concatena valores
+      conteudo.concat(caractere);
+    }
+    // Aguarda buffer serial ler próximo caractere
+    delay(10);
+  }
+    
+  Serial.print("Recebi: ");
+  Serial.println(conteudo);
+    
+  return conteudo;
+}
+
+
