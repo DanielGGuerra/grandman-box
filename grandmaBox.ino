@@ -1,4 +1,6 @@
-#include <TimeAlarms.h>
+#include <Time.h>
+#include <TimeLib.h>
+
 #include <SoftwareSerial.h>
 
 const int pinoRX = 3;
@@ -31,17 +33,23 @@ void setup() {
   pinMode(ledBox6, OUTPUT);
   pinMode(buzzer, OUTPUT);
   pinMode(btnSentinel, INPUT_PULLUP);
-
-  while(not(bluetooth.available())){
-    bluetooth.println("Favor envia horarios");
-    delay(500);
-  }
-  ConfBox();
-  HorarioDia();
+  setTime(904200000);
 }
 
 void loop() {
- ConfBox();  
+  ConfBox();
+  int hora = hour();
+  int minuto = minute();
+  if (hora == horaBox1[0] and minuto == horaBox1[1]) 
+  {
+    AletaLedBuzz(ledBox6);
+  }
+  if (hour() == horaBox2[0] and minute() == horaBox2[1]) AletaLedBuzz(ledBox2);
+  if (hour() == horaBox3[0] and minute() == horaBox3[1]) AletaLedBuzz(ledBox3);
+  if (hour() == horaBox4[0] and minute() == horaBox4[1]) AletaLedBuzz(ledBox4);
+  if (hour() == horaBox5[0] and minute() == horaBox5[1]) AletaLedBuzz(ledBox5);
+  if (hour() == horaBox6[0] and minute() == horaBox6[1]) AletaLedBuzz(ledBox6);
+  HorarioDia();
 }
 
 //Junta os caracteres em uma string e o "*" indentifica o final da frase
@@ -66,15 +74,12 @@ String MensagemSerial()
   return palavra;
 }
 //Pisca o led de uma determido led e o buzz
-int AletaLedBuzz(int led)
-{//for é apanas para teste.
-  for (int i; i < 20;i++)
-  {
-    digitalWrite(led, 1);
-    delay(300);
-    digitalWrite(led, 0);
-    delay(300);
-  }
+void AletaLedBuzz(int led)
+{
+  digitalWrite(led, 1);
+  delay(300);
+  digitalWrite(led, 0);
+  delay(300); 
 }
 //Imprime hora e dia pela porta bluetooth
 void HorarioDia()
@@ -84,20 +89,20 @@ void HorarioDia()
   bluetooth.print(minute());
   bluetooth.print(':');
   bluetooth.print(second());
-  bluetooth.print(" ");
+  /*bluetooth.print(" ");
   bluetooth.print(day());
   bluetooth.print("/");
   bluetooth.print(month());
   bluetooth.print("/");
-  bluetooth.println(year());
+  bluetooth.println(year());*/
   delay(1000);
 }
 //Seta o horario do arduino
 void SicronizaHorario(String mensagem)
 {
-  mensagem.remove(0,1);
-  setTime(mensagem.toInt() - 10800);
-  bluetooth.println(mensagem);
+  //mensagem.remove(0,1);
+  setTime(HoraRemedio(mensagem), MinutoRemedio(mensagem), 0, 27, 8, 1998);
+  //bluetooth.println(mensagem);
 }
 //Função que recebe uma string de hora(HH:MM) e retorna HH
 int HoraRemedio(String mensagem)
@@ -108,7 +113,16 @@ int HoraRemedio(String mensagem)
   {
     hora.concat(mensagem[i]);
   }
+
+  if (hora.length() == 2)
+  {
   return hora.toInt();
+  } else if (hora.length() == 1) {
+    String c = hora;
+    hora = "0";
+    hora = hora.concat(c);
+    return hora.toInt();
+  }
 }
 //Função que recebe uma string de hora(HH:MM) e retorna MM
 int MinutoRemedio(String mensagem)
@@ -119,7 +133,15 @@ int MinutoRemedio(String mensagem)
   {
     minuto.concat(mensagem[i]);
   }
+  if (minuto.length() == 2)
+  {
   return minuto.toInt();
+  } else if (minuto.length() == 1) {
+    String c = minuto;
+    minuto = "0";
+    minuto = minuto.concat(c);
+    return minuto.toInt();
+  }
 }
 //Configuração da Box
 void ConfBox()
@@ -140,8 +162,33 @@ void ConfBox()
       {
         horaBox1[0] = HoraRemedio(mensagem);
         horaBox1[1] = MinutoRemedio(mensagem);
-        Alarm.alarmRepeat(horaBox1[0], horaBox1[1], 0, AletaLedBuzz(ledBox1)); 
       }
+      if (mensagem[0] == '@')
+      {
+        horaBox2[0] = HoraRemedio(mensagem);
+        horaBox2[1] = MinutoRemedio(mensagem);
+      }
+      if (mensagem[0] == '#')
+      {
+        horaBox3[0] = HoraRemedio(mensagem);
+        horaBox3[1] = MinutoRemedio(mensagem);
+      }
+      if (mensagem[0] == '$')
+      {
+        horaBox4[0] = HoraRemedio(mensagem);
+        horaBox4[1] = MinutoRemedio(mensagem);
+      }
+      if (mensagem[0] == '%')
+      {
+        horaBox5[0] = HoraRemedio(mensagem);
+        horaBox5[1] = MinutoRemedio(mensagem);
+      }
+      if (mensagem[0] == '&')
+      {
+        horaBox6[0] = HoraRemedio(mensagem);
+        horaBox6[1] = MinutoRemedio(mensagem);
+      }
+      bluetooth.println("Horarios configurados!!");
     }    
   }
 }
