@@ -1,6 +1,5 @@
 #include <Time.h>
 #include <TimeLib.h>
-
 #include <SoftwareSerial.h>
 
 const int pinoRX = 3;
@@ -19,12 +18,15 @@ int horaBox1[3],
     horaBox4[3],
     horaBox5[3],
     horaBox6[3];
+const char* starwars[] = {"La","Pausa","La","Pausa","La","Pausa","Fa","Do","La","Pausa","Fa","Do","La","Pausa","Mi","Pausa","Mi","Pausa","Mi","Pausa","Fa","Do","Sol","Pausa","Fa","Do","La","Pausa","La","Pausa","La","Pausa","La","Pausa","La","Pausa","Sol#","Pausa","Sol","Fa#","Fa","Fa#","Fim"}; //Marcha Imperial
+int dur[] = {400, 100, 400, 100, 400, 100, 300, 200, 300, 100, 300, 200, 300, 200, 400, 100, 400, 100, 400, 100, 300, 300, 200, 100 , 300, 300, 200, 200, 400, 50, 400, 50, 400, 50, 400, 50, 300, 50, 300, 200, 200, 200};
+const char* musica[] = {"La","Re","Fa","Sol","La","Re", "Fa", "Sol", "Mi", "Pausa", "Sol", "Do", "Fa", "Mi", "Sol", "Do", "Fa", "Mi", "Re", "Fim"}; //Game of Thrones
+int duracao[] = {700, 500, 300, 250, 250, 300, 200, 200, 700, 200, 500, 500, 200, 200, 200, 500, 200, 200, 500};
 
 SoftwareSerial bluetooth(pinoRX, pinoTX);
 
 void setup() {
   bluetooth.begin(9600);
-  Serial.begin(9600);
   pinMode(ledBox1, OUTPUT);
   pinMode(ledBox2, OUTPUT);
   pinMode(ledBox3, OUTPUT);
@@ -32,7 +34,7 @@ void setup() {
   pinMode(ledBox5, OUTPUT);
   pinMode(ledBox6, OUTPUT);
   pinMode(buzzer, OUTPUT);
-  pinMode(btnSentinel, INPUT_PULLUP);
+  pinMode(btnSentinel, INPUT);
   setTime(904200000);
 }
 
@@ -40,15 +42,12 @@ void loop() {
   ConfBox();
   int hora = hour();
   int minuto = minute();
-  if (hora == horaBox1[0] and minuto == horaBox1[1]) 
-  {
-    AletaLedBuzz(ledBox6);
-  }
-  if (hour() == horaBox2[0] and minute() == horaBox2[1]) AletaLedBuzz(ledBox2);
-  if (hour() == horaBox3[0] and minute() == horaBox3[1]) AletaLedBuzz(ledBox3);
-  if (hour() == horaBox4[0] and minute() == horaBox4[1]) AletaLedBuzz(ledBox4);
-  if (hour() == horaBox5[0] and minute() == horaBox5[1]) AletaLedBuzz(ledBox5);
-  if (hour() == horaBox6[0] and minute() == horaBox6[1]) AletaLedBuzz(ledBox6);
+  if (hora == horaBox1[0] and minuto == horaBox1[1]) { AletaLedBuzz(ledBox1); }
+  if (hora == horaBox2[0] and minuto == horaBox2[1]) { AletaLedBuzz(ledBox2); }
+  if (hora == horaBox3[0] and minuto == horaBox3[1]) { AletaLedBuzz(ledBox3); }
+  if (hora == horaBox4[0] and minuto == horaBox4[1]) { AletaLedBuzz(ledBox4); }
+  if (hora == horaBox5[0] and minuto == horaBox5[1]) { AletaLedBuzz(ledBox5); }
+  if (hora == horaBox6[0] and minuto == horaBox6[1]) { AletaLedBuzz(ledBox6); }
   HorarioDia();
 }
 
@@ -76,10 +75,18 @@ String MensagemSerial()
 //Pisca o led de uma determido led e o buzz
 void AletaLedBuzz(int led)
 {
-  digitalWrite(led, 1);
-  delay(300);
-  digitalWrite(led, 0);
-  delay(300); 
+  while(digitalRead(!(btnSentinel)))
+  {
+    tocar(musica,duracao);
+    delay(100);
+  }
+  while(digitalRead(btnSentinel))
+  {
+    digitalWrite(led, 1);
+    delay(200);
+    digitalWrite(led, 0);
+  }
+  
 }
 //Imprime hora e dia pela porta bluetooth
 void HorarioDia()
@@ -192,4 +199,26 @@ void ConfBox()
     }    
   }
 }
+
+void tocar(const char* mus[], int tempo[]){
+  int tom = 0;
+  for(int i = 0; mus[i]!="Fim";i++){
+    if(mus[i] == "Do") tom = 262;
+    if(mus[i] == "Re") tom = 294;
+    if(mus[i] == "Mi") tom = 330;
+    if(mus[i] == "Fa") tom = 349;
+    if(mus[i] == "Sol") tom = 392;
+    if(mus[i] == "La") tom = 440;
+    if(mus[i] == "Si") tom = 494;
+    if(mus[i] == "Do#") tom = 528;
+    if(mus[i] == "Re#") tom = 622;
+    if(mus[i] == "Fa#") tom = 370;
+    if(mus[i] == "Sol#") tom = 415;
+    if(mus[i] == "La#") tom = 466;
+    if(mus[i] == "Pausa") tom = 0;
+    tone(buzzer, tom, tempo[i]);
+    delay(tempo[i]);
+  }
+}
+
 
