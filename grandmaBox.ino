@@ -23,10 +23,10 @@ int dur[] = {400, 100, 400, 100, 400, 100, 300, 200, 300, 100, 300, 200, 300, 20
 const char* musica[] = {"La","Re","Fa","Sol","La","Re", "Fa", "Sol", "Mi", "Pausa", "Sol", "Do", "Fa", "Mi", "Sol", "Do", "Fa", "Mi", "Re", "Fim"}; //Game of Thrones
 int duracao[] = {700, 500, 300, 250, 250, 300, 200, 200, 700, 200, 500, 500, 200, 200, 200, 500, 200, 200, 500};
 
-SoftwareSerial bluetooth(pinoRX, pinoTX);
+//SoftwareSerial Serial(pinoRX, pinoTX);
 
 void setup() {
-  bluetooth.begin(9600);
+  Serial.begin(9600);
   pinMode(ledBox1, OUTPUT);
   pinMode(ledBox2, OUTPUT);
   pinMode(ledBox3, OUTPUT);
@@ -34,7 +34,7 @@ void setup() {
   pinMode(ledBox5, OUTPUT);
   pinMode(ledBox6, OUTPUT);
   pinMode(buzzer, OUTPUT);
-  pinMode(btnSentinel, INPUT);
+  pinMode(btnSentinel, INPUT_PULLUP);
   setTime(904200000);
 }
 
@@ -58,9 +58,9 @@ String MensagemSerial()
 
   String palavra;
 
-  while(bluetooth.available() > 0)
+  while(Serial.available() > 0)
   {
-    p = (byte)bluetooth.read();
+    p = (byte)Serial.read();
   
       if(p == '*')
       {
@@ -75,33 +75,41 @@ String MensagemSerial()
 //Pisca o led de uma determido led e o buzz
 void AletaLedBuzz(int led)
 {
-  while(digitalRead(!(btnSentinel)))
+  if(digitalRead(btnSentinel) == LOW)
   {
-    tocar(musica,duracao);
+   tocar(musica,duracao); 
+  } else {
+    digitalWrite(led, 1);
+    delay(100);
+    digitalWrite(led, 0);
     delay(100);
   }
-  while(digitalRead(btnSentinel))
-  {
-    digitalWrite(led, 1);
-    delay(200);
-    digitalWrite(led, 0);
-  }
   
+//  else
+//  {
+//    for(int i = 0;i < 200;i++)
+//    {
+//      digitalWrite(led, 1);
+//      delay(100);
+//      digitalWrite(led, 0);
+//      delay(100);
+//    }
+//  }
 }
-//Imprime hora e dia pela porta bluetooth
+//Imprime hora e dia pela porta Serial
 void HorarioDia()
 {
-  bluetooth.print(hour());
-  bluetooth.print(':');
-  bluetooth.print(minute());
-  bluetooth.print(':');
-  bluetooth.print(second());
-  /*bluetooth.print(" ");
-  bluetooth.print(day());
-  bluetooth.print("/");
-  bluetooth.print(month());
-  bluetooth.print("/");
-  bluetooth.println(year());*/
+  Serial.print(hour());
+  Serial.print(':');
+  Serial.print(minute());
+  Serial.print(':');
+  Serial.println(second());
+  /*Serial.print(" ");
+  Serial.print(day());
+  Serial.print("/");
+  Serial.print(month());
+  Serial.print("/");
+  Serial.println(year());*/
   delay(1000);
 }
 //Seta o horario do arduino
@@ -109,7 +117,7 @@ void SicronizaHorario(String mensagem)
 {
   //mensagem.remove(0,1);
   setTime(HoraRemedio(mensagem), MinutoRemedio(mensagem), 0, 27, 8, 1998);
-  //bluetooth.println(mensagem);
+  //Serial.println(mensagem);
 }
 //Função que recebe uma string de hora(HH:MM) e retorna HH
 int HoraRemedio(String mensagem)
@@ -153,7 +161,7 @@ int MinutoRemedio(String mensagem)
 //Configuração da Box
 void ConfBox()
 {
-  if (bluetooth.available())
+  if (Serial.available())
   {
     String mensagem;
     mensagem = MensagemSerial();
@@ -195,7 +203,7 @@ void ConfBox()
         horaBox6[0] = HoraRemedio(mensagem);
         horaBox6[1] = MinutoRemedio(mensagem);
       }
-      bluetooth.println("Horarios configurados!!");
+      Serial.println("Horarios configurados!!");
     }    
   }
 }
