@@ -77,12 +77,15 @@ void AletaLedBuzz(int led)
 {
   if(digitalRead(btnSentinel) == LOW)
   {
-   tocar(musica,duracao); 
-  } else {
+   tocar(musica,duracao);
+   //Serial.print("precionado"); 
+  } 
+  if(digitalRead(btnSentinel) == HIGH) {
     digitalWrite(led, 1);
     delay(100);
     digitalWrite(led, 0);
     delay(100);
+    //Serial.print("não precionado");
   }
   
 //  else
